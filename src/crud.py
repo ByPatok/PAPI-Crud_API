@@ -1,21 +1,22 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
+import os
+from pathlib import Path
 
 # Configuração direta do banco PostgreSQL
-DB_NAME = "learningbase"
-DB_USER = "postgres"
-DB_PASSWORD = "quack"
-DB_HOST = "localhost"
-DB_PORT = "5432"
+
+env_path = Path(__file__).parent.parent / "db.env"
+load_dotenv(env_path)
 
 class Database:
     def __init__(self):
         self.conn = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT,
+            dbname=os.environ["DB_NAME"], 
+            user=os.environ["DB_USER"],   
+            password=os.environ["DB_PASSWORD"], 
+            host=os.environ["DB_HOST"],   
+            port=os.environ["DB_PORT"],    
             cursor_factory=RealDictCursor
         )
         self.cur = self.conn.cursor()
