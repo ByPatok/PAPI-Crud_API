@@ -39,26 +39,12 @@ src/
    cd fastapi-crud-app
    ```
 
-2. Create and activate a virtual environment:
+2. Install dependencies:
    ```bash
-   python -m venv .venv
-   # Windows
-   .venv\Scripts\activate
-   # Linux/Mac
-   source .venv/bin/activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install fastapi uvicorn psycopg2-binary pydantic
-   # For Tkinter GUI
-   # (Tkinter is included with Python)
-   # For PyQt GUI
-   pip install PySide6
+   pip install requirements.txt
    ```
 
 4. Set up PostgreSQL:
-   - Create a database named `learningbase`
    - Create the table with:
      ```sql
      CREATE TABLE minha_tabela (
@@ -74,34 +60,18 @@ src/
 ### Starting the API Server
 
 ```bash
-cd src
-uvicorn main:app --reload
+fastapi dev main.py
 ```
 
-The API documentation will be available at http://127.0.0.1:8000/docs
+#### Start one of the interfaces
 
-### Command-Line Interface
-
+ex:  
 ```bash
-cd src
-python interface.py
-```
-
-### Tkinter GUI
-
-```bash
-cd src
-python gui.py
-```
-
-### PyQt/PySide6 GUI
-
-```bash
-cd src
 python new_gui.py
 ```
 
 ## API Endpoints
+The API documentation will be available at http://127.0.0.1:8000/docs  
 
 ### REST-Style Endpoints (JSON)
 
@@ -118,36 +88,6 @@ python new_gui.py
 - **PUT /update?id=value&nome=value&idade=value** - Update record
 - **DELETE /delete?id=value** - Delete record
 
-## Data Models
-
-```python
-# Base model
-class ItemBase:
-    nome: str
-    idade: int
-
-# Model for creating items
-class ItemCreate(ItemBase):
-    pass
-
-# Model for updating items (allows partial updates)
-class ItemUpdate(ItemBase):
-    nome: Optional[str] = None
-    idade: Optional[int] = None
-
-# Complete item model with ID
-class Item(ItemBase):
-    id: int
-```
-
-## Technologies Used
-
-- **FastAPI**: Web framework
-- **Pydantic**: Data validation
-- **PostgreSQL & psycopg2**: Database
-- **Tkinter**: Python's built-in GUI toolkit
-- **PySide6/PyQt**: Qt-based GUI toolkit for Python
-- **Uvicorn**: ASGI server
 
 ## License
 
