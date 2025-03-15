@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import requests
+import threading
+from agent import Agent
 
 API_URL = "http://127.0.0.1:8000"
 
@@ -31,6 +33,38 @@ class ApiGui:
         self.delete_btn = ttk.Button(self.button_frame, text="Delete Selected", command=self.delete_data)
         self.delete_btn.pack(side=tk.LEFT, padx=5)
         
+        
+        
+        # Right side chat space for LMstudio
+        self.chat_frame = ttk.Frame(self.main_frame)
+        self.chat_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10)
+
+        self.chat_label = ttk.Label(self.chat_frame, text="AI Assistant")
+        self.chat_label.pack(anchor=tk.NW, padx=5, pady=5)
+
+        # Chat display area
+        self.chat_text = tk.Text(self.chat_frame, wrap=tk.WORD, state='disabled', width=40)
+        self.chat_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        # Chat scrollbar
+        chat_scrollbar = ttk.Scrollbar(self.chat_frame, orient="vertical", command=self.chat_text.yview)
+        self.chat_text.configure(yscrollcommand=chat_scrollbar.set)
+        chat_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Input frame
+        input_frame = ttk.Frame(self.chat_frame)
+        input_frame.pack(fill=tk.X, padx=5, pady=5)
+
+        # Chat input
+        self.chat_input = ttk.Entry(input_frame, width=30)
+        self.chat_input.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        self.chat_input.bind("<Return>", self.send_message)
+
+        # Send button
+        self.send_btn = ttk.Button(input_frame, text="Send", command=self.send_message)
+        self.send_btn.pack(side=tk.RIGHT)
+        
+        
         # Create table frame with scrollbar
         self.table_frame = ttk.Frame(self.main_frame)
         self.table_frame.pack(fill=tk.BOTH, expand=True, pady=5)
@@ -60,9 +94,65 @@ class ApiGui:
         self.status_bar = ttk.Label(root, textvariable=self.status_var, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
         
+        # Create the agent
+        self.agent = Agent()
+        self.add_message("Assistant", "Hello! I can help you manage your database. Ask me questions or tell me to insert, update, or delete records.")
+
         # Load initial data
         self.refresh_data()
+        
+        # Agent functions
+    def add_message(self, sender, message):
+        """Add a message to the chat display"""
+        self.chat_text.config(state=tk.NORMAL)
+        if self.chat_text.index('end-1c') != '1.0':
+            self.chat_text.insert(tk.END, '\n\n')
+        self.chat_text.insert(tk.END, f"{sender}: ", "bold")
+        self.chat_text.insert(tk.END, message)
+        self.chat_text.see(tk.END)
+        self.chat_text.config(state=tk.DISABLED)
     
+    def send_message(self, event=None):
+        """Send a message to the agent and display the response"""
+        query = self.chat_input.get().strip()
+        if not query:
+            return
+        
+        # Clear the input field
+        self.chat_input.delete(0, tk.END)
+        
+        # Display the user's message
+        self.add_message("You", query)
+        
+        # Disable the send button and input while processing
+        self.send_btn.config(state=tk.DISABLED)
+        self.chat_input.config(state=tk.DISABLED)
+        
+        # Process the query in a separate thread to avoid blocking the UI
+        def process_query_thread():
+            response = self.agent.process_query(query)
+            
+            # Schedule the response to be added to the UI from the main thread
+            self.root.after(0, lambda: self.display_response(response))
+        
+        thread = threading.Thread(target=process_query_thread)
+        thread.daemon = True
+        thread.start()
+    
+    def display_response(self, response):
+        """Display the agent's response and re-enable input"""
+        self.add_message("Assistant", response)
+        
+        # Re-enable the send button and input
+        self.send_btn.config(state=tk.NORMAL)
+        self.chat_input.config(state=tk.NORMAL)
+        self.chat_input.focus()
+        
+        # Refresh the data table if it looks like data might have changed
+        if any(keyword in response.lower() for keyword in ["created", "updated", "deleted", "inserted"]):
+            self.refresh_data()
+        
+
     # /------------------
     # Functions to interact with the API
     def refresh_data(self):
