@@ -1,10 +1,10 @@
 # FastAPI CRUD Application
 
-A simple CRUD application demonstrating FastAPI integration with PostgreSQL, featuring multiple user interfaces: command-line, Tkinter GUI, and PyQt.
+A comprehensive CRUD application demonstrating FastAPI integration with PostgreSQL, featuring multiple user interfaces and an AI-powered assistant for database management.  
 
 ## Overview
 
-This application provides a complete example of creating a database-backed API with FastAPI that can be accessed through multiple interfaces. It demonstrates both query parameter and JSON-based REST API approaches.
+This application provides a complete example of creating a database-backed API with FastAPI that can be accessed through multiple interfaces. It demonstrates both query parameter and JSON-based REST API approaches, along with natural language database interaction through an AI assistant.  
 
 ## Features
 
@@ -14,6 +14,10 @@ This application provides a complete example of creating a database-backed API w
   - Command-line interface
   - Tkinter GUI
   - PySide6/PyQt GUI
+- **AI Assistant Integration**:  
+  - Natural language database queries  
+  - Function calling for database operations  
+  - Interactive chat interface  
 - **CRUD Operations** (Create, Read, Update, Delete)
 - **RESTful API Design**
 - **Pydantic Models** for data validation
@@ -22,13 +26,15 @@ This application provides a complete example of creating a database-backed API w
 
 ```
 src/
-├── crud.py        # Database operations
-├── dbconn.py      # Database connection management
-├── interface.py   # Command-line interface
-├── gui.py         # Tkinter GUI implementation
-├── new_gui.py     # PySide6/PyQt GUI implementation
-├── main.py        # FastAPI application
-└── models.py      # Pydantic data models
+├── main.py            # FastAPI application
+├── models.py          # Pydantic data models
+├── crud.py            # Database operations
+├── dbconn.py          # Database connection management
+├── interface.py       # Command-line interface
+├── Tkinter_GUI.py     # Tkinter GUI with AI assistant integration
+├── new_gui.py         # PySide6/PyQt GUI implementation
+├── Agent.py           # AI assistant integration module
+└── requirements.txt   # Project dependencies
 ```
 
 ## Installation
@@ -56,6 +62,12 @@ src/
    - Update connection settings in crud.py if needed
 
 ## Usage
+
+### Starting the LM Studio Server  
+1. Open LM Studio
+2. Load your chosen model
+3. Start the local server (default: http://localhost:1234)
+
 
 ### Starting the API Server
 
