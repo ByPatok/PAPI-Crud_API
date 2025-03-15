@@ -1,13 +1,12 @@
 import requests
 import json
-import os
-from typing import List, Optional
+from typing import List, Optional, Callable
 from openai import OpenAI
 
 # API base URL
 BASE_URL = "http://127.0.0.1:8000"
 
-# Define functions that the agent can call to interact with your API
+# Define functions that the agent can call to interact with the API
 def list_items():
     """Get all items from the API"""
     response = requests.get(f"{BASE_URL}/items")
@@ -124,31 +123,26 @@ available_functions = {
     "delete_item": delete_item
 }
 
-def main():
-    # Initialize OpenAI client to connect to LM Studio
-    client = OpenAI(
-        base_url="http://localhost:1234/v1",  # Default LM Studio server address
-        api_key="openthinker-7b"  # LM Studio doesn't require an API key locally
-    )
-    
-    print("AI Assistant Ready! Type 'exit' to quit.")
-    print("Example commands:")
-    print("- Show me all items in the database")
-    print("- Create a new item with name John and age 25")
-    print("- Update item 1 with name Mary")
-    print("- Delete item with ID 3")
-    
-    while True:
-        # Get user input
-        user_input = input("\nYou: ")
-        if user_input.lower() == 'exit':
-            break
+class Agent:
+    def __init__(self, callback: Callable[[str], None] = None):
+        """
+        Initialize the agent
         
-        # Call the LLM with function calling
+        Args:
+            callback: Optional function to call with response text updates
+        """
+        self.client = OpenAI(
+            base_url="http://localhost:1234/v1",  # Default LM Studio server address
+            api_key="openthinker-7b"  # LM Studio doesn't require an actual API key locally
+        )
+        self.callback = callback
+        
+    def process_query(self, query: str) -> str:
+
         try:
-            messages = [{"role": "user", "content": user_input}]
-            response = client.chat.completions.create(
-                model="local-model",  # This is ignored by LM Studio but required by the client
+            messages = [{"role": "user", "content": query}]
+            response = self.client.chat.completions.create(
+                model="local-model",  # ignored by LM Studio but required
                 messages=messages,
                 tools=function_definitions,
                 tool_choice="auto"
@@ -156,8 +150,9 @@ def main():
             
             message = response.choices[0].message
             
-            # Check if the model wants to call a function
+            # Check if the model wants to call a function using standard OpenAI format
             if message.tool_calls:
+                results = []
                 for tool_call in message.tool_calls:
                     function_name = tool_call.function.name
                     function_args = json.loads(tool_call.function.arguments)
@@ -167,17 +162,44 @@ def main():
                         function_to_call = available_functions[function_name]
                         function_response = function_to_call(**function_args)
                         
-                        # Display the result
-                        print(f"\nAI Assistant (using {function_name}):")
-                        print(json.dumps(function_response, indent=2))
+                        # Format the result
+                        results.append(f"Result from {function_name}:\n{json.dumps(function_response, indent=2)}")
                     else:
-                        print(f"\nError: Function {function_name} not found")
-            else:
-                # The model didn't call a function, just display the response
-                print(f"\nAI Assistant: {message.content}")
+                        results.append(f"Error: Function {function_name} not found")
                 
+                return "\n\n".join(results)
+            else:
+                # Alternative: Check for XML-style function calls in the content
+                content = message.content if message.content else ""
+                if "<call>" in content and "</call>" in content:
+                    # Extract function call information from XML format
+                    call_start = content.find("<call>") + len("<call>")
+                    call_end = content.find("</call>")
+                    call_content = content[call_start:call_end].strip()
+                    
+                    try:
+                        # Parse the function call JSON
+                        call_data = json.loads(call_content)
+                        function_name = call_data.get("name")
+                        function_args = call_data.get("arguments", {})
+                        
+                        # Call the function
+                        if function_name in available_functions:
+                            function_to_call = available_functions[function_name]
+                            function_response = function_to_call(**function_args)
+                            
+                            # If the content has text before/after the function call, include it
+                            result = f"I called {function_name} for you. Here are the results:\n\n"
+                            result += json.dumps(function_response, indent=2)
+                            return result
+                        else:
+                            return f"Error: Function {function_name} not found"
+                    except json.JSONDecodeError:
+                        # If JSON parsing fails, return the original content
+                        return content
+                
+                # The model didn't call a function, just return the response
+                return content if content else "No response from assistant"
+                    
         except Exception as e:
-            print(f"\nError: {e}")
-
-if __name__ == "__main__":
-    main()
+            return f"Error: {str(e)}"
