@@ -65,7 +65,7 @@ class ApiGui:
     
     # /------------------
     # Functions to interact with the API
-    async def refresh_data(self):
+    def refresh_data(self):
         """Fetch data from API and update the table"""
         try:
             response = requests.get(f"{API_URL}/items")

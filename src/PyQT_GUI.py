@@ -74,6 +74,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(True) # Properly close the app when... Closed.
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
