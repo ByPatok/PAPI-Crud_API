@@ -41,8 +41,8 @@ src/
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/fastapi-crud-app.git
-   cd fastapi-crud-app
+   git clone https://github.com/ByPatok/PAPI-Crud_API
+   cd PAPI-Crud_API
    ```
 
 2. Install dependencies:
