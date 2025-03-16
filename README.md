@@ -29,10 +29,9 @@ src/
 ├── main.py            # FastAPI application
 ├── models.py          # Pydantic data models
 ├── crud.py            # Database operations
-├── dbconn.py          # Database connection management
-├── interface.py       # Command-line interface
+├── CLI_interface.py       # Command-line interface
 ├── Tkinter_GUI.py     # Tkinter GUI with AI assistant integration
-├── new_gui.py         # PySide6/PyQt GUI implementation
+├── PyQt_GUI.py         # PySide6/PyQt GUI implementation
 ├── Agent.py           # AI assistant integration module
 └── requirements.txt   # Project dependencies
 ```
